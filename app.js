@@ -7,18 +7,34 @@ const startARButton = document.getElementById('start-ar');
 let isModelPlaced = false;
 let arSystem;
 
-// Updated AR start function
+// Di bagian atas file, tambahkan:
+let xrSession = null;
+let xrRefSpace = null;
+
+// Update fungsi startAR
 startARButton.addEventListener('click', async () => {
     try {
-        const scene = document.querySelector('a-scene');
-        if (scene.hasLoaded) {
-            startAR();
+        if (navigator.xr) {
+            const supported = await navigator.xr.isSessionSupported('immersive-ar');
+            if (supported) {
+                const session = await navigator.xr.requestSession('immersive-ar', {
+                    requiredFeatures: ['hit-test', 'local-floor']
+                });
+                xrSession = session;
+                const scene = document.querySelector('a-scene');
+                await scene.enterVR();
+                isModelPlaced = true;
+                modelEntity.setAttribute('visible', true);
+                startARButton.style.display = 'none';
+            } else {
+                alert('AR tidak didukung di browser ini. Coba gunakan Safari di iOS atau Chrome di Android.');
+            }
         } else {
-            scene.addEventListener('loaded', startAR);
+            alert('WebXR tidak didukung di browser ini.');
         }
     } catch (error) {
         console.error('Error starting AR:', error);
-        alert('Failed to start AR. Please ensure you are using a supported browser.');
+        alert('Gagal memulai AR. Pastikan menggunakan browser yang mendukung WebXR.');
     }
 });
 
