@@ -1,1 +1,50 @@
-html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hand Tracking AR dengan World Tracking</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; touch-action: none; }
+        .ar-button {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #fff;
+            border: none;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        video { position: absolute; top: 0; left: 0; display: none; }
+        canvas { position: absolute; top: 0; left: 0; }
+    </style>
+</head>
+<body>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="output_canvas"></canvas>
+    <button class="ar-button" id="start-ar">Start AR</button>
+    <a-scene webxr="optionalFeatures: hit-test, local-floor, dom-overlay; overlayElement: #overlay;"
+             renderer="colorManagement: true"
+             embedded>
+        <a-entity id="model" position="0 0 0" scale="0.5 0.5 0.5" visible="false">
+            <a-gltf-model src="Model4.glb"></a-gltf-model>
+        </a-entity>
+        <a-entity id="camera" camera position="0 1.6 0"></a-entity>
+        <a-entity id="reticle" 
+                  geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                  material="color: white; shader: flat"
+                  rotation="-90 0 0"
+                  visible="false">
+        </a-entity>
+    </a-scene>
+    <div id="overlay"></div>
+    <script src="app.js"></script>
+</body>
+</html>
