@@ -209,14 +209,30 @@ startARButton.addEventListener('click', async () => {
             if (supported) {
                 logDebug('Requesting AR session...');
                 const session = await navigator.xr.requestSession('immersive-ar', {
-                    requiredFeatures: ['hit-test', 'local-floor']
+                    requiredFeatures: ['hit-test', 'local-floor'],
+                    optionalFeatures: ['dom-overlay'],
+                    domOverlay: { root: document.body }
                 });
                 logDebug('Session created');
                 xrSession = session;
+                
+                // Inisialisasi kamera sebelum masuk ke mode AR
+                await camera.start();
+                logDebug('Camera started');
+                
                 const scene = document.querySelector('a-scene');
-                logDebug('Entering VR mode...');
-                await scene.enterVR();
-                logDebug('VR mode entered');
+                if (scene.renderStarted) {
+                    logDebug('Entering VR mode...');
+                    await scene.enterVR();
+                    logDebug('VR mode entered');
+                } else {
+                    logDebug('Scene not ready, waiting for render-start');
+                    scene.addEventListener('render-start', async () => {
+                        await scene.enterVR();
+                        logDebug('VR mode entered after render-start');
+                    });
+                }
+                
                 isModelPlaced = true;
                 modelEntity.setAttribute('visible', true);
                 startARButton.style.display = 'none';
@@ -233,6 +249,25 @@ startARButton.addEventListener('click', async () => {
         console.error('Error starting AR:', error);
         alert('Gagal memulai AR. Pastikan menggunakan browser yang mendukung WebXR.');
     }
+});
+
+// Update camera setup
+const camera = new Camera(videoElement, {
+    onFrame: async () => {
+        try {
+            await hands.send({ image: videoElement });
+        } catch (error) {
+            logDebug('Error in camera frame:', error.message);
+        }
+    },
+    facingMode: "environment",
+    width: 1280,
+    height: 720
+});
+
+// Tambahkan event listener untuk camera ready
+camera.addEventListener('ready', () => {
+    logDebug('Camera is ready');
 });
 
 // Tambahkan logging di event listener model
