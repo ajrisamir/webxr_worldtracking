@@ -181,3 +181,75 @@ modelEntity.addEventListener('model-error', (error) => {
     console.error("Error loading 3D model:", error);
     alert("Gagal memuat model 3D. Periksa jalur file model.");
 });
+
+// Di bagian atas file, tambahkan fungsi logger
+function logDebug(message, data = null) {
+    const debugDiv = document.getElementById('debug-info') || createDebugDiv();
+    const logMessage = data ? `${message}: ${JSON.stringify(data)}` : message;
+    debugDiv.innerHTML += `<div>${logMessage}</div>`;
+    console.log(message, data);
+}
+
+function createDebugDiv() {
+    const div = document.createElement('div');
+    div.id = 'debug-info';
+    div.style.cssText = 'position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px; font-size: 12px; z-index: 9999; max-height: 200px; overflow-y: auto;';
+    document.body.appendChild(div);
+    return div;
+}
+
+// Update fungsi startAR dengan logging
+startARButton.addEventListener('click', async () => {
+    try {
+        logDebug('Checking WebXR support...');
+        if (navigator.xr) {
+            logDebug('WebXR exists');
+            const supported = await navigator.xr.isSessionSupported('immersive-ar');
+            logDebug('AR supported:', supported);
+            if (supported) {
+                logDebug('Requesting AR session...');
+                const session = await navigator.xr.requestSession('immersive-ar', {
+                    requiredFeatures: ['hit-test', 'local-floor']
+                });
+                logDebug('Session created');
+                xrSession = session;
+                const scene = document.querySelector('a-scene');
+                logDebug('Entering VR mode...');
+                await scene.enterVR();
+                logDebug('VR mode entered');
+                isModelPlaced = true;
+                modelEntity.setAttribute('visible', true);
+                startARButton.style.display = 'none';
+            } else {
+                logDebug('AR not supported in this browser');
+                alert('AR tidak didukung di browser ini. Coba gunakan Safari di iOS atau Chrome di Android.');
+            }
+        } else {
+            logDebug('WebXR not available');
+            alert('WebXR tidak didukung di browser ini.');
+        }
+    } catch (error) {
+        logDebug('Error in AR start:', error.message);
+        console.error('Error starting AR:', error);
+        alert('Gagal memulai AR. Pastikan menggunakan browser yang mendukung WebXR.');
+    }
+});
+
+// Tambahkan logging di event listener model
+modelEntity.addEventListener('model-loaded', () => {
+    logDebug("Model 3D berhasil dimuat!");
+});
+
+modelEntity.addEventListener('model-error', (error) => {
+    logDebug("Error loading 3D model:", error.message);
+    alert("Gagal memuat model 3D. Periksa jalur file model.");
+});
+
+// Tambahkan logging untuk scene events
+document.querySelector('a-scene').addEventListener('loaded', () => {
+    logDebug('A-Frame scene loaded');
+});
+
+document.querySelector('a-scene').addEventListener('enter-vr', () => {
+    logDebug('Entered VR/AR mode');
+});
