@@ -2,40 +2,31 @@ const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('output_canvas');
 const canvasCtx = canvasElement.getContext('2d');
 const modelEntity = document.getElementById('model');
-const reticle = document.getElementById('reticle');
 const startARButton = document.getElementById('start-ar');
 
 let isModelPlaced = false;
+let arSystem;
 
-// Fungsi untuk memulai sesi AR
+// Updated AR start function
 startARButton.addEventListener('click', async () => {
-    const scene = document.querySelector('a-scene');
-    const session = await scene.enterAR();
-});
-
-// Event listener untuk hit-test
-window.addEventListener('enter-vr', () => {
-    if (navigator.xr) {
+    try {
         const scene = document.querySelector('a-scene');
-        scene.addEventListener('ar-hit-test-select', (event) => {
-            if (!isModelPlaced) {
-                const position = event.detail.position;
-                modelEntity.setAttribute('position', position);
-                modelEntity.setAttribute('visible', true);
-                reticle.setAttribute('visible', false);
-                isModelPlaced = true;
-            }
-        });
-
-        scene.addEventListener('ar-hit-test-start', () => {
-            reticle.setAttribute('visible', true);
-        });
-
-        scene.addEventListener('ar-hit-test-move', (event) => {
-            reticle.setAttribute('position', event.detail.position);
-        });
+        if (scene.hasLoaded) {
+            startAR();
+        } else {
+            scene.addEventListener('loaded', startAR);
+        }
+    } catch (error) {
+        console.error('Error starting AR:', error);
+        alert('Failed to start AR. Please ensure you are using a supported browser.');
     }
 });
+
+function startAR() {
+    isModelPlaced = true;
+    modelEntity.setAttribute('visible', true);
+    startARButton.style.display = 'none';
+}
 
 // Set video dan canvas agar menyesuaikan dengan ukuran layar ponsel
 function adjustVideoCanvasSize() {
@@ -85,11 +76,13 @@ function lerp(a, b, t) {
 
 // Update fungsi onResults untuk menyesuaikan dengan world tracking
 function onResults(results) {
+    if (!isModelPlaced) return;
+
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0);
 
-    if (results.multiHandLandmarks && isModelPlaced) {
+    if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
             const smoothedLandmarks = smoothLandmarks(landmarks);
             drawConnectors(canvasCtx, smoothedLandmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
@@ -99,7 +92,7 @@ function onResults(results) {
                 const indexFinger = smoothedLandmarks[8];
                 const thumb = smoothedLandmarks[4];
 
-                // Menghitung jarak dan skala model
+                // Calculate scale
                 const distance = Math.sqrt(
                     Math.pow(indexFinger.x - thumb.x, 2) + Math.pow(indexFinger.y - thumb.y, 2)
                 );
@@ -108,11 +101,18 @@ function onResults(results) {
                 const smoothedScale = lerp(previousScale || targetScale, targetScale, 0.2);
                 previousScale = smoothedScale;
                 
-                // Update skala relatif terhadap posisi awal
-                const currentScale = modelEntity.getAttribute('scale');
                 modelEntity.setAttribute('scale', `${smoothedScale} ${smoothedScale} ${smoothedScale}`);
 
-                // Menghitung rotasi model
+                // Calculate position
+                const worldPos = {
+                    x: (indexFinger.x - 0.5) * 2,
+                    y: -(indexFinger.y - 0.5) * 2,
+                    z: -indexFinger.z * 2
+                };
+                
+                modelEntity.setAttribute('position', `${worldPos.x} ${worldPos.y} ${worldPos.z}`);
+
+                // Calculate rotation
                 const deltaX = thumb.x - indexFinger.x;
                 const deltaY = thumb.y - indexFinger.y;
                 const deltaZ = thumb.z - indexFinger.z;
