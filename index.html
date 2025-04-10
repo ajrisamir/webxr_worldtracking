@@ -37,8 +37,8 @@
     <video id="video" autoplay playsinline></video>
     <canvas id="output_canvas"></canvas>
     <a-scene 
-        webxr="optionalFeatures: local; referenceSpaceType: local;"
-        renderer="colorManagement: true;"
+        webxr="requiredFeatures: local; optionalFeatures: dom-overlay; overlayElement: #dom-overlay;"
+        renderer="colorManagement: true; antialias: true;"
         embedded>
         <a-entity id="model" position="0 0 -1" scale="0.5 0.5 0.5">
             <a-gltf-model src="Model4.glb"></a-gltf-model>
