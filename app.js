@@ -82,11 +82,26 @@ arButton.addEventListener('click', async () => {
     } else {
         try {
             const session = await navigator.xr.requestSession('immersive-ar', {
-                requiredFeatures: ['hit-test', 'dom-overlay'],
+                optionalFeatures: ['hit-test', 'dom-overlay', 'light-estimation'],
                 domOverlay: { root: document.body }
             });
-            await scene.enterAR();
+            
+            // Initialize XR session
+            await scene.renderer.xr.setSession(session);
+            await scene.enterAR({
+                sessionInit: {
+                    optionalFeatures: ['hit-test', 'dom-overlay', 'light-estimation'],
+                    domOverlay: { root: document.body }
+                }
+            });
+            
             arButton.textContent = 'Exit AR';
+            
+            // Handle session end
+            session.addEventListener('end', () => {
+                arButton.textContent = 'Start AR';
+                scene.renderer.xr.setSession(null);
+            });
         } catch (err) {
             console.error('Error entering AR:', err);
             alert('Failed to start AR: ' + err.message);
