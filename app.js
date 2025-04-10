@@ -56,20 +56,35 @@ const scene = document.querySelector('a-scene');
 // Check WebXR support
 const checkXR = async () => {
     try {
-        if (!navigator.xr) {
-            // Try to create polyfill if not available
-            const polyfill = new WebXRPolyfill();
+        // Check if running on iOS Safari
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+        if (isIOS && isSafari) {
+            // iOS Safari specific check
+            if (window.AppleWebAssembly && navigator.xr) {
+                const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
+                if (isSupported) {
+                    arButton.textContent = 'Start AR';
+                    arButton.disabled = false;
+                    return;
+                }
+            }
         }
         
-        const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
-        if (!isSupported) {
-            arButton.textContent = 'AR Not Supported';
-            arButton.disabled = true;
-            console.warn('WebXR AR is not supported on this device');
-        } else {
-            arButton.textContent = 'Start AR';
-            arButton.disabled = false;
+        // Fallback check for other browsers
+        if (navigator.xr) {
+            const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
+            if (isSupported) {
+                arButton.textContent = 'Start AR';
+                arButton.disabled = false;
+                return;
+            }
         }
+
+        arButton.textContent = 'AR Not Supported';
+        arButton.disabled = true;
+        console.warn('WebXR AR is not supported on this device');
     } catch (err) {
         console.error('Error checking AR support:', err);
         arButton.textContent = 'AR Error';
