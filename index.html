@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hand Tracking AR dengan World Tracking</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; touch-action: none; }
+        a-scene { width: 100%; height: 100%; }
+        video { position: absolute; top: 0; left: 0; display: none; }
+        canvas { position: absolute; top: 0; left: 0; }
+        .ar-button {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #fff;
+            border: none;
+            border-radius: 5px;
+            z-index: 9999;
+        }
+    </style>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="output_canvas"></canvas>
+    <a-scene webxr="optionalFeatures: hit-test, local-floor, bounded-floor, hand-tracking;"
+             renderer="colorManagement: true"
+             embedded>
+        <a-entity id="model" position="0 0 -1" scale="0.5 0.5 0.5">
+            <a-gltf-model src="Model4.glb"></a-gltf-model>
+        </a-entity>
+        <a-entity camera position="0 1.6 0"></a-entity>
+    </a-scene>
+    <button class="ar-button" id="ar-button">Start AR</button>
+    <script src="app.js"></script>
+</body>
+</html>
