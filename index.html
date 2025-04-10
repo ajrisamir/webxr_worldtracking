@@ -31,15 +31,18 @@
 <body>
     <video id="video" autoplay playsinline></video>
     <canvas id="output_canvas"></canvas>
-    <a-scene webxr="optionalFeatures: hit-test, local-floor, bounded-floor, hand-tracking;"
-             renderer="colorManagement: true"
-             embedded>
+    <a-scene 
+        webxr="optionalFeatures: hit-test, local-floor, dom-overlay; overlayElement: #dom-overlay;"
+        renderer="colorManagement: true; physicallyCorrectLights: true;"
+        embedded>
         <a-entity id="model" position="0 0 -1" scale="0.5 0.5 0.5">
             <a-gltf-model src="Model4.glb"></a-gltf-model>
         </a-entity>
         <a-entity camera position="0 1.6 0"></a-entity>
     </a-scene>
-    <button class="ar-button" id="ar-button">Start AR</button>
+    <div id="dom-overlay">
+        <button id="ar-button">Start AR</button>
+    </div>
     <script src="app.js"></script>
 </body>
 </html>
