@@ -54,21 +54,30 @@ const arButton = document.getElementById('ar-button');
 const scene = document.querySelector('a-scene');
 
 // Check WebXR support
-if (navigator.xr) {
-    navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
-        if (!supported) {
+const checkXR = async () => {
+    try {
+        if (!navigator.xr) {
+            // Try to create polyfill if not available
+            const polyfill = new WebXRPolyfill();
+        }
+        
+        const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
+        if (!isSupported) {
             arButton.textContent = 'AR Not Supported';
             arButton.disabled = true;
-            alert('WebXR AR is not supported on this device');
+            console.warn('WebXR AR is not supported on this device');
+        } else {
+            arButton.textContent = 'Start AR';
+            arButton.disabled = false;
         }
-    }).catch(err => {
+    } catch (err) {
         console.error('Error checking AR support:', err);
-    });
-} else {
-    arButton.textContent = 'AR Not Supported';
-    arButton.disabled = true;
-    alert('WebXR is not available on this browser');
-}
+        arButton.textContent = 'AR Error';
+        arButton.disabled = true;
+    }
+};
+
+checkXR();
 
 // Modified AR button event listener
 arButton.addEventListener('click', async () => {
@@ -82,25 +91,15 @@ arButton.addEventListener('click', async () => {
     } else {
         try {
             const session = await navigator.xr.requestSession('immersive-ar', {
-                optionalFeatures: ['hit-test', 'dom-overlay', 'light-estimation'],
+                optionalFeatures: ['local', 'dom-overlay'],
                 domOverlay: { root: document.body }
             });
             
-            // Initialize XR session
-            await scene.renderer.xr.setSession(session);
-            await scene.enterAR({
-                sessionInit: {
-                    optionalFeatures: ['hit-test', 'dom-overlay', 'light-estimation'],
-                    domOverlay: { root: document.body }
-                }
-            });
-            
+            await scene.enterAR();
             arButton.textContent = 'Exit AR';
             
-            // Handle session end
             session.addEventListener('end', () => {
                 arButton.textContent = 'Start AR';
-                scene.renderer.xr.setSession(null);
             });
         } catch (err) {
             console.error('Error entering AR:', err);
