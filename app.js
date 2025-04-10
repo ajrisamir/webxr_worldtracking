@@ -94,7 +94,36 @@ const checkXR = async () => {
 
 checkXR();
 
-// Modified AR button event listener
+// Add this before checkXR()
+const requestSensorPermissions = async () => {
+    try {
+        // Request device orientation permission
+        if (typeof DeviceOrientationEvent !== 'undefined' && 
+            typeof DeviceOrientationEvent.requestPermission === 'function') {
+            const permissionState = await DeviceOrientationEvent.requestPermission();
+            if (permissionState !== 'granted') {
+                alert('Izin sensor orientasi diperlukan untuk AR');
+                return false;
+            }
+        }
+
+        // Request device motion permission
+        if (typeof DeviceMotionEvent !== 'undefined' && 
+            typeof DeviceMotionEvent.requestPermission === 'function') {
+            const permissionState = await DeviceMotionEvent.requestPermission();
+            if (permissionState !== 'granted') {
+                alert('Izin sensor motion diperlukan untuk AR');
+                return false;
+            }
+        }
+        return true;
+    } catch (error) {
+        console.error('Error requesting sensor permissions:', error);
+        return false;
+    }
+};
+
+// Modify AR button event listener
 arButton.addEventListener('click', async () => {
     if (scene.is('ar-mode')) {
         try {
@@ -105,6 +134,12 @@ arButton.addEventListener('click', async () => {
         }
     } else {
         try {
+            // Request sensor permissions first
+            const sensorsGranted = await requestSensorPermissions();
+            if (!sensorsGranted) {
+                return;
+            }
+
             const session = await navigator.xr.requestSession('immersive-ar', {
                 optionalFeatures: ['local', 'dom-overlay'],
                 domOverlay: { root: document.body }
