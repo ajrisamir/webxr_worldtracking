@@ -50,7 +50,6 @@ function lerp(a, b, t) {
 }
 
 // Fungsi untuk mengatur posisi, skala, dan rotasi model berdasarkan hasil tracking
-// Tambahkan kode berikut sebelum camera.start()
 const arButton = document.getElementById('ar-button');
 const scene = document.querySelector('a-scene');
 
@@ -69,11 +68,10 @@ arButton.addEventListener('click', async () => {
     }
 });
 
-// Modifikasi posisi model untuk world space
 function onResults(results) {
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    canvasCtx.drawImage(results.image, 0, 0); // Tidak ada pengaturan ukuran khusus di sini
+    canvasCtx.drawImage(results.image, 0, 0);
 
     if (results.multiHandLandmarks) {
         for (const landmarks of results.multiHandLandmarks) {
@@ -94,30 +92,6 @@ function onResults(results) {
                 const smoothedScale = lerp(previousScale || targetScale, targetScale, 0.2);
                 previousScale = smoothedScale;
                 modelEntity.setAttribute('scale', `${smoothedScale} ${smoothedScale} ${smoothedScale}`);
-
-                // Menghitung posisi model
-                const aframeX = (indexFinger.x * canvasElement.width / videoElement.videoWidth - 0.5) * 2;
-                const aframeY = -(indexFinger.y * canvasElement.height / videoElement.videoHeight - 0.5) * 2;
-                const aframeZ = -smoothedLandmarks[8].z * 2; // Kedalaman berdasarkan z
-
-                // Smoothing posisi model
-                previousPosition = previousPosition || { x: aframeX, y: aframeY, z: aframeZ };
-                const smoothX = lerp(previousPosition.x, aframeX, 0.2);
-                const smoothY = lerp(previousPosition.y, aframeY, 0.2);
-                const smoothZ = lerp(previousPosition.z, aframeZ, 0.2);
-                previousPosition = { x: smoothX, y: smoothY, z: smoothZ };
-
-                modelEntity.setAttribute('position', `${smoothX} ${smoothY} ${smoothZ}`);
-
-                // Menghitung rotasi model
-                const deltaX = thumb.x - indexFinger.x;
-                const deltaY = thumb.y - indexFinger.y;
-                const deltaZ = thumb.z - indexFinger.z;
-
-                const rotationX = Math.atan2(deltaY, deltaZ) * (180 / Math.PI);
-                const rotationY = Math.atan2(deltaX, deltaZ) * (180 / Math.PI);
-
-                modelEntity.setAttribute('rotation', `${rotationX} ${rotationY} 0`);
 
                 // Update posisi untuk world space
                 const worldX = (indexFinger.x - 0.5) * 2;
