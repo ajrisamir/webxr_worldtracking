@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Add these lines before other scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.js"></script>
+    <script>
+        var polyfill = new WebXRPolyfill();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hand Tracking AR dengan World Tracking</title>
@@ -32,8 +37,8 @@
     <video id="video" autoplay playsinline></video>
     <canvas id="output_canvas"></canvas>
     <a-scene 
-        webxr="optionalFeatures: hit-test, local-floor, dom-overlay; overlayElement: #dom-overlay;"
-        renderer="colorManagement: true; physicallyCorrectLights: true;"
+        webxr="optionalFeatures: local; referenceSpaceType: local;"
+        renderer="colorManagement: true;"
         embedded>
         <a-entity id="model" position="0 0 -1" scale="0.5 0.5 0.5">
             <a-gltf-model src="Model4.glb"></a-gltf-model>
