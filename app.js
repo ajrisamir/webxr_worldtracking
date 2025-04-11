@@ -54,21 +54,26 @@ const arButton = document.getElementById('ar-button');
 const scene = document.querySelector('a-scene');
 
 // Check WebXR support
+// Modifikasi fungsi checkXR
 const checkXR = async () => {
     try {
-        // Check if running on iOS Safari
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-        if (isIOS && isSafari) {
-            // iOS Safari specific check
-            if (window.AppleWebAssembly && navigator.xr) {
+        if (isIOS) {
+            if ('xr' in navigator) {
                 const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
                 if (isSupported) {
                     arButton.textContent = 'Start AR';
                     arButton.disabled = false;
                     return;
                 }
+            }
+            // Fallback untuk iOS WebXR
+            if (window.webkit && window.webkit.messageHandlers) {
+                arButton.textContent = 'Start AR';
+                arButton.disabled = false;
+                return;
             }
         }
         
@@ -92,38 +97,7 @@ const checkXR = async () => {
     }
 };
 
-checkXR();
-
-// Add this before checkXR()
-const requestSensorPermissions = async () => {
-    try {
-        // Request device orientation permission
-        if (typeof DeviceOrientationEvent !== 'undefined' && 
-            typeof DeviceOrientationEvent.requestPermission === 'function') {
-            const permissionState = await DeviceOrientationEvent.requestPermission();
-            if (permissionState !== 'granted') {
-                alert('Izin sensor orientasi diperlukan untuk AR');
-                return false;
-            }
-        }
-
-        // Request device motion permission
-        if (typeof DeviceMotionEvent !== 'undefined' && 
-            typeof DeviceMotionEvent.requestPermission === 'function') {
-            const permissionState = await DeviceMotionEvent.requestPermission();
-            if (permissionState !== 'granted') {
-                alert('Izin sensor motion diperlukan untuk AR');
-                return false;
-            }
-        }
-        return true;
-    } catch (error) {
-        console.error('Error requesting sensor permissions:', error);
-        return false;
-    }
-};
-
-// Modify AR button event listener
+// Modifikasi event listener tombol AR
 arButton.addEventListener('click', async () => {
     if (scene.is('ar-mode')) {
         try {
@@ -140,11 +114,13 @@ arButton.addEventListener('click', async () => {
                 return;
             }
 
-            const session = await navigator.xr.requestSession('immersive-ar', {
-                optionalFeatures: ['local', 'dom-overlay'],
-                domOverlay: { root: document.body }
-            });
-            
+            const sessionInit = {
+                requiredFeatures: ['hit-test', 'local-floor'],
+                optionalFeatures: ['dom-overlay'],
+                domOverlay: { root: document.querySelector('#dom-overlay') }
+            };
+
+            const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
             await scene.enterAR();
             arButton.textContent = 'Exit AR';
             
