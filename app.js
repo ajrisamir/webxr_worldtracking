@@ -63,7 +63,8 @@ async function toggleARSession() {
     } else {
         try {
             const sessionInit = {
-                optionalFeatures: ['dom-overlay', 'hit-test'],
+                requiredFeatures: ['hit-test'],
+                optionalFeatures: ['dom-overlay', 'plane-detection'],
                 domOverlay: { root: document.querySelector('#dom-overlay') }
             };
             
@@ -71,9 +72,16 @@ async function toggleARSession() {
             await scene.enterAR();
             arButton.textContent = 'Exit AR';
 
-            // Add this to ensure model visibility
-            modelEntity.setAttribute('visible', 'true');
-            modelEntity.setAttribute('position', '0 0 -1');
+            // Wait for surface detection
+            modelEntity.setAttribute('visible', 'false');
+            scene.addEventListener('ar-hit-test', (event) => {
+                const pose = event.detail.pose;
+                if (pose) {
+                    modelEntity.setAttribute('visible', 'true');
+                    modelEntity.setAttribute('position', `${pose.transform.position.x} ${pose.transform.position.y} ${pose.transform.position.z}`);
+                    console.log('Model placed on detected surface');
+                }
+            });
             
             session.addEventListener('end', () => {
                 arButton.textContent = 'Start AR';
