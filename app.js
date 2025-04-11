@@ -63,7 +63,7 @@ async function toggleARSession() {
     } else {
         try {
             const sessionInit = {
-                optionalFeatures: ['dom-overlay'],
+                optionalFeatures: ['dom-overlay', 'hit-test'],
                 domOverlay: { root: document.querySelector('#dom-overlay') }
             };
             
@@ -71,6 +71,10 @@ async function toggleARSession() {
             await scene.enterAR();
             arButton.textContent = 'Exit AR';
 
+            // Add this to ensure model visibility
+            modelEntity.setAttribute('visible', 'true');
+            modelEntity.setAttribute('position', '0 0 -1');
+            
             session.addEventListener('end', () => {
                 arButton.textContent = 'Start AR';
             });
@@ -189,8 +193,17 @@ function initializeMediaPipe() {
 initializeMediaPipe();
 
 // Event Listeners for 3D Model
+// Add near the top of the file with other event listeners
+scene.addEventListener('enter-vr', () => {
+    modelEntity.setAttribute('visible', 'true');
+    console.log('Entering AR/VR mode, model should be visible');
+});
+
 modelEntity.addEventListener('model-loaded', () => {
     console.log("3D model loaded successfully!");
+    modelEntity.setAttribute('visible', 'true');
+    // Add initial scale if needed
+    modelEntity.setAttribute('scale', '0.5 0.5 0.5');
 });
 modelEntity.addEventListener('model-error', (error) => {
     console.error("Error loading 3D model:", error);
