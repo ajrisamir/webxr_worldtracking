@@ -43,11 +43,11 @@
     <video id="video" autoplay playsinline></video>
     <canvas id="output_canvas"></canvas>
     <a-scene 
-        webxr="optionalFeatures: dom-overlay;"
+        webxr="optionalFeatures: dom-overlay,hit-test;"
         renderer="colorManagement: true;"
         embedded>
         <a-entity id="model" position="0 0 -1" scale="0.5 0.5 0.5">
-            <a-gltf-model src="Model4.glb"></a-gltf-model>
+            <a-gltf-model src="Model4.glb" response-type="arraybuffer"></a-gltf-model>
         </a-entity>
         <a-entity camera position="0 1.6 0"></a-entity>
     </a-scene>
