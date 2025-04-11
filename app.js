@@ -62,16 +62,12 @@ async function toggleARSession() {
         }
     } else {
         try {
-            const sensorsGranted = await requestSensorPermissions();
-            if (!sensorsGranted) return;
-
             const sessionInit = {
-                requiredFeatures: ['hit-test', 'local-floor'],
                 optionalFeatures: ['dom-overlay'],
                 domOverlay: { root: document.querySelector('#dom-overlay') }
             };
+            
             const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
-
             await scene.enterAR();
             arButton.textContent = 'Exit AR';
 
@@ -89,18 +85,7 @@ arButton.addEventListener('click', toggleARSession);
 // Checks WebXR support and updates AR button
 async function checkXRSupport() {
     try {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
-        if (isIOS && isSafari) {
-            if (window.webkit && window.webkit.messageHandlers && navigator.xr) {
-                const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
-                arButton.textContent = isSupported ? 'Start AR' : 'AR Not Supported';
-                arButton.disabled = !isSupported;
-                return;
-            }
-        }
-
+        // Simplified check for XR Browser
         if (navigator.xr) {
             const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
             arButton.textContent = isSupported ? 'Start AR' : 'AR Not Supported';
